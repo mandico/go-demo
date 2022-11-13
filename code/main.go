@@ -32,5 +32,8 @@ func Info(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(err)
 		os.Exit(1)
 	}
-	io.WriteString(w, version+" | "+hostname+" | "+currentTime.Format("2006.01.02 15:04:05.000000"))
+
+	var output = " | " + version + " | " + hostname + " | " + currentTime.Format("2006.01.02 15:04:05.000000") + " | "
+	io.WriteString(w, output)
+	log.Println(output)
 }
