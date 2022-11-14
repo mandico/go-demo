@@ -18,7 +18,7 @@ func main() {
 	http.HandleFunc("/demo/info", Info)
 
 	//Use the default DefaultServeMux.
-	err := http.ListenAndServe(":8080", nil)
+	err := http.ListenAndServe(":80", nil)
 	if err != nil {
 		log.Fatal(err)
 	}

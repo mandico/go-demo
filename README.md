@@ -31,39 +31,52 @@ go mod download && go mod verify
 CGO_ENABLED=0 GOOS=linux go build -o /build/app app.go
 ```
 
-### Dockerfile
-``` Dockerfile
-# stage build
-FROM golang:1.19 as build
-
-WORKDIR /build
-
-COPY go.mod ./
-RUN go mod download && go mod verify
-
-COPY . .
-RUN CGO_ENABLED=0 GOOS=linux go build -o /build/app app.go
-
-# stage imagem final
-FROM alpine:3.16
-
-WORKDIR /apps
-
-COPY --from=build /build/app ./
-
-EXPOSE 8080
-
-CMD [ "./app" ]
-```
-
 ### Build App + Build Image
 ``` shell
-cd app-go/
-docker build . -t go-app:1.0.0 -t go-app:latest
+sh scripts/01.build_image.sh IMAGE_NAME IMAGE_TAG
+#Example
+sh scripts/01.build_image.sh go-demo 1.2.3
 ```
 
 ### Deployment
 ``` shell
-cd k8s/
-kubectl apply -f .
+### Helm Template
+helm template go-demo \
+  --set green.enabled=true \
+  --set blue.enabled=true \
+  --set deployment.image.blue.repository=go-demo \
+  --set deployment.image.blue.tag=1.0.0 \
+  --set deployment.image.green.repository=go-demo \
+  --set deployment.image.green.tag=2.0.0
+
+### Helm Install
+### 1. Install V1
+helm upgrade go-demo-dev go-demo \
+  --set productionSlot=blue \
+  --set green.enabled=true \
+  --set deployment.image.green.repository=luizmandico/go-demo \
+  --set deployment.image.green.tag=1.0.0 \
+  --reuse-values \
+  --install
+
+### 2. Swap to Prd
+helm upgrade go-demo-dev go-demo \
+  --set productionSlot=green \
+  --set green.enabled=true \
+  --reuse-values \
+  --install
+
+### 3. Install V2 in Stage
+helm upgrade go-demo-dev go-demo \
+  --set blue.enabled=true \
+  --set deployment.image.blue.repository=luizmandico/go-demo \
+  --set deployment.image.blue.tag=2.0.0 \
+  --reuse-values \
+  --install
+
+### 4. Swap to Prd
+helm upgrade go-demo-dev go-demo \
+  --set productionSlot=blue \
+  --reuse-values \
+  --install
 ```

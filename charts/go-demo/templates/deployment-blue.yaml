@@ -27,14 +27,13 @@ spec:
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      serviceAccountName: {{ include "go-demo.serviceAccountName" . }}
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       containers:
         - name: {{ .Chart.Name }}
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
-          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          image: "{{ .Values.deployment.image.blue.repository }}:{{ .Values.deployment.image.blue.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             - name: http
@@ -42,11 +41,11 @@ spec:
               protocol: TCP
           livenessProbe:
             httpGet:
-              path: /
+              path: {{ .Values.deployment.livenessProbe.path }}
               port: http
           readinessProbe:
             httpGet:
-              path: /
+              path: {{ .Values.deployment.readinessProbe.path }}
               port: http
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
